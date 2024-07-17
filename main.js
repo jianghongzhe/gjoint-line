@@ -1,7 +1,7 @@
 import {putLine} from './js/joint-line.js';
 
 const putLines = () => {
-    putLine("#from", "#to", "svg", { orientation: 'h', strokeWidth: 1, fromNodeLevel: 2 });
+    putLine("#from", "#to", "svg", { orientation: 'h', strokeWidth: 1, fromNodeLevel: 2, color:'teal', });
 };
 
 document.querySelector("#container").addEventListener("click", event => {

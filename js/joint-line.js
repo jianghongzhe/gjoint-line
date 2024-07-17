@@ -9,27 +9,47 @@ const getElement = (selectorOrEle) => {
     throw new Error("cannot get element");
 };
 
+const round = (num) => parseInt(Math.round(num));
+
+/**
+ * get the relative rect with its fields rounded to integer
+ * @param rect
+ * @param baseRect
+ * @returns {any}
+ */
 const getRelativeRect = (rect, baseRect) => {
     const newRect = JSON.parse(JSON.stringify(rect));
-    newRect.left -= baseRect.left;
-    newRect.right -= baseRect.left;
-    newRect.x -= baseRect.left;
+    newRect.left = round(newRect.left) - round(baseRect.left);
+    newRect.right = round(newRect.right) - round(baseRect.left);
+    newRect.x = round(newRect.x) - round(baseRect.left);
 
-    newRect.top -= baseRect.top;
-    newRect.bottom -= baseRect.top;
-    newRect.y -= baseRect.top;
+    newRect.top = round(newRect.top) - round(baseRect.top);
+    newRect.bottom = round(newRect.bottom) - round(baseRect.top);
+    newRect.y = round(newRect.y) - round(baseRect.top);
     return newRect;
 };
 
+const setProperties = (ele, props) => {
+    Object.keys(props).forEach(k => ele.style.setProperty(k, props[k]));
+}
+
 /**
- * orientation: h/v
- * shape: smooth/square
  *
+ * @param from
+ * @param to
+ * @param line
+ * @param orientation h/v
+ * @param strokeWidth
+ * @param fromNodeLevel
+ * @param shape smooth/square
+ * @param color
  */
-const putLine = (from, to, line, {orientation, strokeWidth, fromNodeLevel, shape}) => {
+const putLine = (from, to, line, {orientation, strokeWidth, fromNodeLevel, shape, color} = {}) => {
     orientation = (orientation ?? 'h');
+    strokeWidth = (strokeWidth ?? 1);
     fromNodeLevel = (fromNodeLevel ?? 2);
     shape = (shape ?? 'smooth');
+    color = (color ?? 'lightgrey');
 
     const fromEle = getElement(from);
     const toEle = getElement(to);
@@ -43,49 +63,51 @@ const putLine = (from, to, line, {orientation, strokeWidth, fromNodeLevel, shape
     if ('h' === orientation) {
         if (fromNodeLevel >= 2) {
             if ('smooth' == shape) {
+                const padding = 10;
+                const controlLevel = 75;
+
                 const leftToRight = (fromRect.left < toRect.left);
-                const left = (leftToRight ? fromRect.right : toRect.right)-1;
-                const right = (leftToRight ? toRect.left : fromRect.left)+1;
-                const fromTop = (2 === fromNodeLevel ? fromRect.top + fromRect.height / 2 - strokeWidth / 2 : fromRect.bottom - strokeWidth);
-                const toTop = toRect.bottom - strokeWidth;
+                let left = (leftToRight ? fromRect.right : toRect.right);
+                let right = (leftToRight ? toRect.left : fromRect.left);
+
+                // joint point on from node is in the middle height when the node is second level, and in the bottom when the node level is greater than three
+                const fromTop = round(2 === fromNodeLevel ? fromRect.top + fromRect.height / 2 - strokeWidth / 2 : fromRect.bottom - strokeWidth);
+                const toTop = round(toRect.bottom - strokeWidth);
                 const top = Math.min(fromTop, toTop);
                 const bottom = Math.max(fromTop, toTop) + strokeWidth;
+
+                // look from left to right, whether the line is up to down
                 const lineLeftRightTopDown = ((leftToRight && fromTop < toTop) || (!leftToRight && fromTop > toTop));
 
-                lineEle.style.left = `${left}px`;
-                lineEle.style.width = `${right - left}px`;
-                lineEle.style.top = `${top}px`;
-                lineEle.style.height = `${bottom - top}px`;
-
-                let level = 75;
-                let x1 = 0;
-                let y1 = 0;
-                let x2 = (right - left);
-                let y2 = 0;
-                let c1x = x1 + level;
+                let x1 = padding;
+                let y1 = padding + strokeWidth / 2;
+                let x2 = padding + (right - left);
+                let y2 = (padding + bottom - top - strokeWidth / 2);
+                let c1x = x1 + controlLevel;
                 let c1y = 0;
-                let c2x = x2 - level;
+                let c2x = x2 - controlLevel;
                 let c2y = 0;
 
-
-                if (lineLeftRightTopDown) {
-                    y1 = strokeWidth / 2;
-                    y2 = (bottom - top - strokeWidth / 2);
-                } else {
-                    y1 = (bottom - top - strokeWidth / 2);
-                    y2 = strokeWidth / 2;
+                if (!lineLeftRightTopDown) {
+                    [y1, y2] = [y2, y1];
                 }
 
                 c1y = y1;
                 c2y = y2;
 
-                console.log("linePathEle", linePathEle);
-                linePathEle.setAttribute("d", `M ${x1} ${y1} C ${c1x} ${c1y} ${c2x} ${c2y} ${x2} ${y2}`);
-                linePathEle.style.strokeWidth=strokeWidth;
-                linePathEle.style.stroke='teal';
+                setProperties(lineEle, {
+                    left: `${left - padding}px`,
+                    width: `${right - left + 2 * padding}px`,
+                    top: `${top - padding}px`,
+                    height: `${bottom - top + 2 * padding}px`,
+                });
 
-                // let path = `<path d="M ${x1} ${y1} C ${c1x} ${c1y} ${c2x} ${c2y} ${x2} ${y2}" style="stroke-width:${strokeWidth};stroke: teal;fill:none"></path>`;
-                // lineEle.innerHTML = path;
+                linePathEle.setAttribute("d", `M ${x1} ${y1} C ${c1x} ${c1y} ${c2x} ${c2y} ${x2} ${y2}`);
+                setProperties(linePathEle, {
+                    stroke: color,
+                    "stroke-width": strokeWidth,
+                    fill: "none",
+                })
             }
         }
     }
