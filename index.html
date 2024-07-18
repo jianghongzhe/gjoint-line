@@ -11,14 +11,24 @@
 <input/>
 <div id="container"
         style="width: 90vw; height:90vh;   position: relative; overflow: auto; margin: 0; padding: 0; margin-top:10px; margin-left:10px;">
+
+
+    <svg xmlns="http://www.w3.org/2000/svg" style="width:200px; height:200px; background-color: lightgoldenrodyellow;">
+        <!-- 空心椭圆 -->
+        <path d="M 50,100 Q 100,75 150,50" style="fill:none;stroke-width: 1px; stroke: teal;" />
+    </svg>
+
+
+
     <div id="from"
-         style="position: absolute; width:100px; height:100px; background-color: #EEE; box-sizing: border-box; border-bottom: 1px solid teal; left:310px; top:200px;">
+         style="z-index: 2; position: absolute; width:100px; height:100px; background-color: transparent; box-sizing: border-box; border-bottom: 1px solid teal; left:310px; top:315px;">
     </div>
     <div id="to"
-         style="position: absolute; width:100px; height:100px; background-color: #fff;box-sizing: border-box; border-bottom: 1px solid teal; left:550px; top:300.5px;">
+         style="z-index: 2;position: absolute; width:100px; height:100px; background-color: transparent;box-sizing: border-box; border-bottom: 1px solid teal; left:550px; top:300.5px;">
     </div>
-    <svg id="svg" style="background-color: transparent; position: absolute;">
-        <path style="fill:none"></path>
+    <svg id="svg" style="z-index: 1;background-color: transparent; position: absolute;">
+        <path/>
+        <ellipse/>
     </svg>
 </div>
 <script type="module" src="/main.js"></script>

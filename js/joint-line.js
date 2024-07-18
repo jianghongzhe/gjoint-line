@@ -1,3 +1,8 @@
+/**
+ * get element
+ * @param selectorOrEle
+ * @returns {{tagName}|*|Element}
+ */
 const getElement = (selectorOrEle) => {
     if ('object' === typeof selectorOrEle && selectorOrEle.tagName) {
         return selectorOrEle;
@@ -29,9 +34,20 @@ const getRelativeRect = (rect, baseRect) => {
     return newRect;
 };
 
-const setProperties = (ele, props) => {
+const setStyleProperties = (ele, props) => {
     Object.keys(props).forEach(k => ele.style.setProperty(k, props[k]));
 }
+
+const ShapeEnum = {
+    bezier: "bezier",
+    arc: "arc",
+    square: "square",
+};
+
+const PositionEnum = {
+    center: "center",
+    edge: "edge",
+};
 
 /**
  *
@@ -40,76 +56,141 @@ const setProperties = (ele, props) => {
  * @param line
  * @param orientation h/v
  * @param strokeWidth
- * @param fromNodeLevel
- * @param shape smooth/square
+ * @param shape bezier/arc/square
+ * @param fromPosition center/edge, invalid when shape=arc, always use center
+ * @param toPosition center/edge, invalid when shape=arc, always use center
  * @param color
  */
-const putLine = (from, to, line, {orientation, strokeWidth, fromNodeLevel, shape, color} = {}) => {
+const putLine = (from, to, line, {
+    orientation,
+    strokeWidth,
+    shape,
+    fromPosition,
+    toPosition,
+    color
+} = {}) => {
     orientation = (orientation ?? 'h');
     strokeWidth = (strokeWidth ?? 1);
-    fromNodeLevel = (fromNodeLevel ?? 2);
-    shape = (shape ?? 'smooth');
+    fromPosition = (fromPosition ?? PositionEnum.edge);
+    toPosition = (toPosition ?? PositionEnum.edge);
+    shape = (shape ?? ShapeEnum.bezier);
     color = (color ?? 'lightgrey');
 
     const fromEle = getElement(from);
     const toEle = getElement(to);
     const lineEle = getElement(line);
-    const linePathEle = lineEle.querySelector("path");
+    const linePathEle = lineEle.querySelector(ShapeEnum.bezier === shape ? "path" : "ellipse");
 
     const relativeRect = fromEle.parentNode.getBoundingClientRect();
     const fromRect = getRelativeRect(getElement(fromEle).getBoundingClientRect(), relativeRect);
     const toRect = getRelativeRect(getElement(toEle).getBoundingClientRect(), relativeRect);
 
     if ('h' === orientation) {
-        if (fromNodeLevel >= 2) {
-            if ('smooth' == shape) {
-                const padding = 10;
-                const controlLevel = 75;
 
-                const leftToRight = (fromRect.left < toRect.left);
-                let left = (leftToRight ? fromRect.right : toRect.right);
-                let right = (leftToRight ? toRect.left : fromRect.left);
-
-                // joint point on from node is in the middle height when the node is second level, and in the bottom when the node level is greater than three
-                const fromTop = round(2 === fromNodeLevel ? fromRect.top + fromRect.height / 2 - strokeWidth / 2 : fromRect.bottom - strokeWidth);
-                const toTop = round(toRect.bottom - strokeWidth);
-                const top = Math.min(fromTop, toTop);
-                const bottom = Math.max(fromTop, toTop) + strokeWidth;
-
-                // look from left to right, whether the line is up to down
-                const lineLeftRightTopDown = ((leftToRight && fromTop < toTop) || (!leftToRight && fromTop > toTop));
-
-                let x1 = padding;
-                let y1 = padding + strokeWidth / 2;
-                let x2 = padding + (right - left);
-                let y2 = (padding + bottom - top - strokeWidth / 2);
-                let c1x = x1 + controlLevel;
-                let c1y = 0;
-                let c2x = x2 - controlLevel;
-                let c2y = 0;
-
-                if (!lineLeftRightTopDown) {
-                    [y1, y2] = [y2, y1];
-                }
-
-                c1y = y1;
-                c2y = y2;
-
-                setProperties(lineEle, {
-                    left: `${left - padding}px`,
-                    width: `${right - left + 2 * padding}px`,
-                    top: `${top - padding}px`,
-                    height: `${bottom - top + 2 * padding}px`,
-                });
-
-                linePathEle.setAttribute("d", `M ${x1} ${y1} C ${c1x} ${c1y} ${c2x} ${c2y} ${x2} ${y2}`);
-                setProperties(linePathEle, {
-                    stroke: color,
-                    "stroke-width": strokeWidth,
-                    fill: "none",
-                })
+        const getJointPointTop = (rect, position) => {
+            if (PositionEnum.center === position) {
+                return round(rect.top + rect.height / 2 - strokeWidth / 2);
             }
+            if (PositionEnum.edge === position) {
+                return round(rect.bottom - strokeWidth);
+            }
+            console.error(`unsupported joint point position: ${position}`);
+            throw new Error("unsupported joint point position");
+        };
+
+        if (ShapeEnum.bezier === shape) {
+            const padding = 10;
+            const controlLevel = 75;
+
+            const leftToRight = (fromRect.left < toRect.left);
+            let left = (leftToRight ? fromRect.right : toRect.right);
+            let right = (leftToRight ? toRect.left : fromRect.left);
+
+            const fromTop = getJointPointTop(fromRect, fromPosition);
+            const toTop = getJointPointTop(toRect, toPosition);
+            const top = Math.min(fromTop, toTop);
+            const bottom = Math.max(fromTop, toTop) + strokeWidth;
+
+            // look from left to right, whether the line is up to down
+            const lineLeftRightTopDown = ((leftToRight && fromTop < toTop) || (!leftToRight && fromTop > toTop));
+
+            let x1 = padding;
+            let y1 = padding + strokeWidth / 2;
+            let x2 = padding + (right - left);
+            let y2 = (padding + bottom - top - strokeWidth / 2);
+            let c1x = x1 + controlLevel;
+            let c1y = 0;
+            let c2x = x2 - controlLevel;
+            let c2y = 0;
+
+            if (!lineLeftRightTopDown) {
+                [y1, y2] = [y2, y1];
+            }
+
+            c1y = y1;
+            c2y = y2;
+
+            setStyleProperties(lineEle, {
+                left: `${left - padding}px`,
+                width: `${right - left + 2 * padding}px`,
+                top: `${top - padding}px`,
+                height: `${bottom - top + 2 * padding}px`,
+            });
+
+            linePathEle.setAttribute("d", `M ${x1} ${y1} C ${c1x} ${c1y} ${c2x} ${c2y} ${x2} ${y2}`);
+            setStyleProperties(linePathEle, {
+                stroke: color,
+                "stroke-width": strokeWidth,
+                fill: "none",
+            });
+            return;
         }
+
+        if (ShapeEnum.arc === shape) {
+            const padding = 10;
+
+            const leftToRight = (fromRect.left < toRect.left);
+            let left = round(leftToRight ? fromRect.right-fromRect.width/2 : toRect.right);
+            let right = (leftToRight ? toRect.left : fromRect.left);
+
+            const fromTop = getJointPointTop(fromRect, PositionEnum.center);
+            const toTop = getJointPointTop(toRect, PositionEnum.center);
+            const top = Math.min(fromTop, toTop);
+            const bottom = Math.max(fromTop, toTop) + strokeWidth;
+
+            // look from left to right, whether the line is up to down
+            const lineLeftRightTopDown = ((leftToRight && fromTop < toTop) || (!leftToRight && fromTop > toTop));
+
+            let cx = padding + (right - left);
+            let cy = padding + (bottom - top);
+            let rx = (right - left);
+            let ry = (bottom - top);
+
+            // if (!lineLeftRightTopDown) {
+            //     [y1, y2] = [y2, y1];
+            // }
+
+
+            setStyleProperties(lineEle, {
+                left: `${left - padding}px`,
+                width: `${right - left + 2 * padding}px`,
+                top: `${top - padding}px`,
+                height: `${bottom - top + 2 * padding}px`,
+                // "background-color": "lightgrey"
+            });
+
+            linePathEle.setAttribute("cx", `${cx}`);
+            linePathEle.setAttribute("cy", `${cy}`);
+            linePathEle.setAttribute("rx", `${rx}`);
+            linePathEle.setAttribute("ry", `${ry}`);
+            setStyleProperties(linePathEle, {
+                stroke: color,
+                "stroke-width": strokeWidth,
+                fill: "none",
+            });
+            return;
+        }
+
     }
 
 
