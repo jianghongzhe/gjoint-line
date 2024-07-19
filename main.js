@@ -5,8 +5,8 @@ const putLines = () => {
         orientation: 'h',
         strokeWidth: 1,
         color: 'teal',
-        shape:"bezier",
-        // shape:"arc",
+        // shape:"bezier",
+        shape:"arc",
         fromPosition:'edge',
         toPosition:'edge',
     });

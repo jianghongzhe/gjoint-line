@@ -78,8 +78,9 @@ const putLine = (from, to, line, {
 
     const fromEle = getElement(from);
     const toEle = getElement(to);
-    const lineEle = getElement(line);
-    const linePathEle = lineEle.querySelector(ShapeEnum.bezier === shape ? "path" : "ellipse");
+    const lineWrapperEle = getElement(line);
+    const lineSvgEle = lineWrapperEle.querySelector("svg");
+    const linePathEle = lineSvgEle.querySelector("path");
 
     const relativeRect = fromEle.parentNode.getBoundingClientRect();
     const fromRect = getRelativeRect(getElement(fromEle).getBoundingClientRect(), relativeRect);
@@ -130,11 +131,19 @@ const putLine = (from, to, line, {
             c1y = y1;
             c2y = y2;
 
-            setStyleProperties(lineEle, {
+            setStyleProperties(lineWrapperEle, {
                 left: `${left - padding}px`,
                 width: `${right - left + 2 * padding}px`,
                 top: `${top - padding}px`,
                 height: `${bottom - top + 2 * padding}px`,
+                "background-color": "transparent",
+                position: "absolute",
+            });
+
+            setStyleProperties(lineSvgEle, {
+                width: `${right - left + 2 * padding}px`,
+                height: `${bottom - top + 2 * padding}px`,
+                "background-color": "transparent",
             });
 
             linePathEle.setAttribute("d", `M ${x1} ${y1} C ${c1x} ${c1y} ${c2x} ${c2y} ${x2} ${y2}`);
@@ -161,21 +170,25 @@ const putLine = (from, to, line, {
             // look from left to right, whether the line is up to down
             const lineLeftRightTopDown = ((leftToRight && fromTop < toTop) || (!leftToRight && fromTop > toTop));
 
-            let cx = padding + (right - left);
-            let cy = padding + (bottom - top);
-            let rx = (right - left);
-            let ry = (bottom - top);
 
-            // if (!lineLeftRightTopDown) {
-            //     [y1, y2] = [y2, y1];
-            // }
+            setStyleProperties(lineWrapperEle, {
+                left: `${left}px`,
+                width: `${right - left}px`,
+                top: `${top}px`,
+                height: `${bottom - top}px`,
+                position: "absolute",
+                "border-top-left-radius": "100%",
+                "border-width": `1px 0 0 1px`,
+                "border-style": "solid",
+                "border-color": "teal",
+            });
 
 
-            setStyleProperties(lineEle, {
-                left: `${left - padding}px`,
-                width: `${right - left + 2 * padding}px`,
-                top: `${top - padding}px`,
-                height: `${bottom - top + 2 * padding}px`,
+            setStyleProperties(lineSvgEle, {
+                // left: `${left - padding}px`,
+                width: `0px`,
+                // top: `${top - padding}px`,
+                height: `0px`,
                 // "background-color": "lightgrey"
             });
 
