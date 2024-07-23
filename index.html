@@ -10,18 +10,20 @@
 
 <input/>
 
-<!--<div style="border-top-left-radius: 100%;border-width: 1px 0 0 1px; border-style: solid; border-color: teal;width:300px;height:150px;"></div>-->
+<div style="width:100px;height:50px;max-width:100px;max-height:50px; position: absolute; top:50px;  overflow: hidden; ">
+        <svg xmlns="http://www.w3.org/2000/svg" style="display: block; right:0; bottom: 0; width:200px; height:100px; position: absolute; background-color: lightgoldenrodyellow;">
+
+    <!--        <path d="M 0 50 Q 0 0 150 0" style="fill:none;stroke-width: 1px; stroke: teal;" />-->
+
+            <ellipse cx="100" cy="50" rx="99" ry="49" style="fill:none;stroke-width: 2px; stroke: teal;"/>
+        </svg>
+</div>
 
 <div id="container"
         style="width: 90vw; height:90vh;   position: relative; overflow: auto; margin: 0; padding: 0; margin-top:10px; margin-left:10px;">
 
 
-<!--    <svg xmlns="http://www.w3.org/2000/svg" style="width:200px; height:200px; background-color: lightgoldenrodyellow;" viewBox="0 0 100 50">-->
-<!--        &lt;!&ndash; 空心椭圆 &ndash;&gt;-->
-<!--&lt;!&ndash;        <path d="M 0 50 Q 0 0 150 0" style="fill:none;stroke-width: 1px; stroke: teal;" />&ndash;&gt;-->
 
-<!--        <ellipse cx="150" cy="50" rx="150" ry="50" style="fill:none;stroke-width: 1px; stroke: teal;"/>-->
-<!--    </svg>-->
 
 <!--    <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">-->
 <!--        &lt;!&ndash; 绘制四分之一椭圆 &ndash;&gt;-->
@@ -32,14 +34,15 @@
 
 
     <div id="from"
-         style="z-index: 2; position: absolute; width:100px; height:100px; background-color: #EEE; box-sizing: border-box; border-bottom: 1px solid teal; left:310px; top:315px;">
+         style="z-index: 2; position: absolute; width:100px; height:100px; background-color: #EEEEEE; box-sizing: border-box; border-bottom: 1px solid teal; left:310px; top:315px;">
     </div>
     <div id="to"
-         style="z-index: 2;position: absolute; width:100px; height:100px; background-color: #EEE;box-sizing: border-box; border-bottom: 1px solid teal; left:550px; top:210px;">
+         style="z-index: 2;position: absolute; width:100px; height:100px; background-color: #EEEEEE;box-sizing: border-box; border-bottom: 1px solid teal; left:550px; top:210px;">
     </div>
     <div id="svg" style="z-index: 1;">
         <svg>
             <path/>
+            <ellipse/>
         </svg>
     </div>
 </div>

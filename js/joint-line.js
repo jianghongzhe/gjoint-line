@@ -35,7 +35,9 @@ const getRelativeRect = (rect, baseRect) => {
 };
 
 const setStyleProperties = (ele, props) => {
-    Object.keys(props).forEach(k => ele.style.setProperty(k, props[k]));
+    Object.keys(props).forEach(k => {
+        ele.style.setProperty(k, null === props[k] || '' === props[k] ? '' : props[k]);
+    });
 }
 
 const ShapeEnum = {
@@ -81,6 +83,10 @@ const putLine = (from, to, line, {
     const lineWrapperEle = getElement(line);
     const lineSvgEle = lineWrapperEle.querySelector("svg");
     const linePathEle = lineSvgEle.querySelector("path");
+    const lineEllipseEle = lineSvgEle.querySelector("ellipse");
+
+    console.log("linePathEle", linePathEle);
+    console.log("lineEllipseEle", lineEllipseEle);
 
     const relativeRect = fromEle.parentNode.getBoundingClientRect();
     const fromRect = getRelativeRect(getElement(fromEle).getBoundingClientRect(), relativeRect);
@@ -156,14 +162,15 @@ const putLine = (from, to, line, {
         }
 
         if (ShapeEnum.arc === shape) {
-            const padding = 10;
+            // const padding = 10;
 
             const leftToRight = (fromRect.left < toRect.left);
-            let left = round(leftToRight ? fromRect.right-fromRect.width/2 : toRect.right);
-            let right = (leftToRight ? toRect.left : fromRect.left);
+            let left = round(leftToRight ? fromRect.right - fromRect.width / 2 : toRect.right);
+            let right = round(leftToRight ? toRect.left : fromRect.right - fromRect.width / 2);
 
             const fromTop = getJointPointTop(fromRect, PositionEnum.center);
             const toTop = getJointPointTop(toRect, PositionEnum.center);
+            const topToDown = (fromTop < toTop);
             const top = Math.min(fromTop, toTop);
             const bottom = Math.max(fromTop, toTop) + strokeWidth;
 
@@ -177,26 +184,38 @@ const putLine = (from, to, line, {
                 top: `${top}px`,
                 height: `${bottom - top}px`,
                 position: "absolute",
-                "border-top-left-radius": "100%",
-                "border-width": `1px 0 0 1px`,
-                "border-style": "solid",
-                "border-color": "teal",
+                overflow: "hidden",
             });
 
 
-            setStyleProperties(lineSvgEle, {
-                // left: `${left - padding}px`,
-                width: `0px`,
-                // top: `${top - padding}px`,
-                height: `0px`,
-                // "background-color": "lightgrey"
-            });
+            const svgStyle = {
+                width: `${(right - left) * 2}px`,
+                height: `${(bottom - top) * 2}px`,
+                position: "absolute",
+                bottom: null,
+                right: null,
+            };
 
-            linePathEle.setAttribute("cx", `${cx}`);
-            linePathEle.setAttribute("cy", `${cy}`);
-            linePathEle.setAttribute("rx", `${rx}`);
-            linePathEle.setAttribute("ry", `${ry}`);
-            setStyleProperties(linePathEle, {
+            if (leftToRight && topToDown) {
+                svgStyle.bottom = `0`;
+            }
+            if (leftToRight && !topToDown) {
+            }
+            if (!leftToRight && topToDown) {
+                svgStyle.bottom = `0`;
+                svgStyle.right = `0`;
+            }
+            if (!leftToRight && !topToDown) {
+                svgStyle.right = `0`;
+            }
+
+            setStyleProperties(lineSvgEle, svgStyle);
+
+            lineEllipseEle.setAttribute("cx", `${right - left}`);
+            lineEllipseEle.setAttribute("cy", `${bottom - top}`);
+            lineEllipseEle.setAttribute("rx", `${right - left - strokeWidth / 2}`);
+            lineEllipseEle.setAttribute("ry", `${bottom - top - strokeWidth / 2}`);
+            setStyleProperties(lineEllipseEle, {
                 stroke: color,
                 "stroke-width": strokeWidth,
                 fill: "none",
