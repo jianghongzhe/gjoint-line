@@ -1,16 +1,25 @@
 import {putLine} from './js/joint-line.js';
 
 const putLines = () => {
+    const lineType=document.querySelector("#lineType").value;
+    const fromPosition=document.querySelector("#fromPoint").value;
+    const toPosition=document.querySelector("#toPoint").value;
+
     putLine("#from", "#to", "#svg", {
         orientation: 'h',
         strokeWidth: 1,
         color: 'teal',
-        // shape:"bezier",
-        shape:"arc",
-        fromPosition:'edge',
-        toPosition:'edge',
+        shape:lineType, // bezier/arc
+        fromPosition, //:'edge',
+        toPosition //:'edge',
     });
 };
+
+document.querySelector("#lineType").addEventListener("change", putLines);
+document.querySelector("#fromPoint").addEventListener("change", putLines);
+document.querySelector("#toPoint").addEventListener("change", putLines);
+
+
 
 document.querySelector("#container").addEventListener("click", event => {
     const ele = document.querySelector("#to");

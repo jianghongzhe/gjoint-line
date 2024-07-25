@@ -85,9 +85,6 @@ const putLine = (from, to, line, {
     const linePathEle = lineSvgEle.querySelector("path");
     const lineEllipseEle = lineSvgEle.querySelector("ellipse");
 
-    console.log("linePathEle", linePathEle);
-    console.log("lineEllipseEle", lineEllipseEle);
-
     const relativeRect = fromEle.parentNode.getBoundingClientRect();
     const fromRect = getRelativeRect(getElement(fromEle).getBoundingClientRect(), relativeRect);
     const toRect = getRelativeRect(getElement(toEle).getBoundingClientRect(), relativeRect);
@@ -106,6 +103,10 @@ const putLine = (from, to, line, {
         };
 
         if (ShapeEnum.bezier === shape) {
+            if (lineEllipseEle) {
+                setStyleProperties(lineEllipseEle, {display: 'none',});
+            }
+
             const padding = 10;
             const controlLevel = 75;
 
@@ -144,12 +145,16 @@ const putLine = (from, to, line, {
                 height: `${bottom - top + 2 * padding}px`,
                 "background-color": "transparent",
                 position: "absolute",
+                overflow: null,
             });
 
             setStyleProperties(lineSvgEle, {
                 width: `${right - left + 2 * padding}px`,
                 height: `${bottom - top + 2 * padding}px`,
                 "background-color": "transparent",
+                position: null,
+                bottom: null,
+                right: null,
             });
 
             linePathEle.setAttribute("d", `M ${x1} ${y1} C ${c1x} ${c1y} ${c2x} ${c2y} ${x2} ${y2}`);
@@ -157,12 +162,15 @@ const putLine = (from, to, line, {
                 stroke: color,
                 "stroke-width": strokeWidth,
                 fill: "none",
+                display: "block",
             });
             return;
         }
 
         if (ShapeEnum.arc === shape) {
-            // const padding = 10;
+            if (linePathEle) {
+                setStyleProperties(linePathEle, {display: 'none',});
+            }
 
             const leftToRight = (fromRect.left < toRect.left);
             let left = round(leftToRight ? fromRect.right - fromRect.width / 2 : toRect.right);
@@ -184,6 +192,7 @@ const putLine = (from, to, line, {
                 top: `${top}px`,
                 height: `${bottom - top}px`,
                 position: "absolute",
+                "background-color": "transparent",
                 overflow: "hidden",
             });
 
@@ -191,6 +200,7 @@ const putLine = (from, to, line, {
             const svgStyle = {
                 width: `${(right - left) * 2}px`,
                 height: `${(bottom - top) * 2}px`,
+                "background-color": "transparent",
                 position: "absolute",
                 bottom: null,
                 right: null,
@@ -219,6 +229,7 @@ const putLine = (from, to, line, {
                 stroke: color,
                 "stroke-width": strokeWidth,
                 fill: "none",
+                display: "block",
             });
             return;
         }
