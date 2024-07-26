@@ -1,7 +1,7 @@
 {
-  "name": "my-vue-app",
-  "private": true,
-  "version": "0.0.0",
+  "name": "gjoint-line",
+  "version": "1.0.0",
+  "main": "js/joint-line.js",
   "type": "module",
   "scripts": {
     "dev": "vite",

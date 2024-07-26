@@ -234,9 +234,70 @@ const putLine = (from, to, line, {
             return;
         }
 
+        if (ShapeEnum.square === shape) {
+            if (lineEllipseEle) {
+                setStyleProperties(lineEllipseEle, {display: 'none',});
+            }
+
+            const padding = 10;
+            const controlRate = 0.4;
+
+            const leftToRight = (fromRect.left < toRect.left);
+            let left = (leftToRight ? fromRect.right : toRect.right);
+            let right = (leftToRight ? toRect.left : fromRect.left);
+
+            const fromTop = getJointPointTop(fromRect, fromPosition);
+            const toTop = getJointPointTop(toRect, toPosition);
+            const top = Math.min(fromTop, toTop);
+            const bottom = Math.max(fromTop, toTop) + strokeWidth;
+
+            // look from left to right, whether the line is up to down
+            const lineLeftRightTopDown = ((leftToRight && fromTop < toTop) || (!leftToRight && fromTop > toTop));
+
+            let step = round((right - left) * controlRate);
+            let x1 = padding;
+            let y1 = padding + strokeWidth / 2;
+            let x2 = padding + (right - left);
+            let y2 = (padding + bottom - top - strokeWidth / 2);
+
+
+            if (!lineLeftRightTopDown) {
+                [y1, y2] = [y2, y1];
+            }
+
+            let cx = (leftToRight ? x1 + step : x2 - step);
+            let cy =  y2;
+
+
+            setStyleProperties(lineWrapperEle, {
+                left: `${left - padding}px`,
+                width: `${right - left + 2 * padding}px`,
+                top: `${top - padding}px`,
+                height: `${bottom - top + 2 * padding}px`,
+                "background-color": "transparent",
+                position: "absolute",
+                overflow: null,
+            });
+
+            setStyleProperties(lineSvgEle, {
+                width: `${right - left + 2 * padding}px`,
+                height: `${bottom - top + 2 * padding}px`,
+                "background-color": "transparent",
+                position: null,
+                bottom: null,
+                right: null,
+            });
+
+            linePathEle.setAttribute("d", `M ${x1} ${y1} L ${cx} ${y1} L ${cx} ${y2} L ${x2} ${y2}`);
+            setStyleProperties(linePathEle, {
+                stroke: color,
+                "stroke-width": strokeWidth,
+                fill: "none",
+                display: "block",
+            });
+            return;
+        }
     }
-
-
 };
 
 export {

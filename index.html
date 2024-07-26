@@ -14,6 +14,7 @@ line type
 <select id="lineType">
     <option>bezier</option>
     <option>arc</option>
+    <option>square</option>
 </select>
 
 from join point
@@ -28,12 +29,12 @@ to join point
     <option>edge</option>
 </select>
 
-<div style="width:100px;height:50px;max-width:100px;max-height:50px; position: absolute; top:50px;  overflow: hidden; ">
-        <svg xmlns="http://www.w3.org/2000/svg" style="display: block; right:0; bottom: 0; width:200px; height:100px; position: absolute; background-color: lightgoldenrodyellow;">
+<div style="width:100px;height:100px;max-width:100px;max-height:100px; position: absolute; top:50px;  overflow: hidden; ">
+        <svg xmlns="http://www.w3.org/2000/svg" style="display: block;  width:100px; height:100px; position: absolute; background-color: lightgoldenrodyellow;">
 
-    <!--        <path d="M 0 50 Q 0 0 150 0" style="fill:none;stroke-width: 1px; stroke: teal;" />-->
+            <path d="M 0 0.5 L 50 80" style="fill:none;stroke-width: 1px; stroke: teal;" />
 
-            <ellipse cx="100" cy="50" rx="99" ry="49" style="fill:none;stroke-width: 2px; stroke: teal;"/>
+<!--            <ellipse cx="100" cy="50" rx="99" ry="49" style="fill:none;stroke-width: 2px; stroke: teal;"/>-->
         </svg>
 </div>
 
@@ -64,7 +65,7 @@ to join point
         </svg>
     </div>
 </div>
-<script type="module" src="/main.js"></script>
+<script type="module" src="/index.js"></script>
 </body>
 
 </html>
