@@ -4,9 +4,10 @@ const putLines = () => {
     const lineType=document.querySelector("#lineType").value;
     const fromPosition=document.querySelector("#fromPoint").value;
     const toPosition=document.querySelector("#toPoint").value;
+    const direction=document.querySelector("#lineDirection").value;
 
     putLine("#from", "#to", "#svg", {
-        orientation: 'v',
+        orientation: direction,
         strokeWidth: 1,
         color: 'teal',
         shape:lineType, // bezier/arc
@@ -18,6 +19,7 @@ const putLines = () => {
 document.querySelector("#lineType").addEventListener("change", putLines);
 document.querySelector("#fromPoint").addEventListener("change", putLines);
 document.querySelector("#toPoint").addEventListener("change", putLines);
+document.querySelector("#lineDirection").addEventListener("change", putLines);
 
 
 
