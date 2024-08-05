@@ -6,7 +6,7 @@ const putLines = () => {
     const toPosition=document.querySelector("#toPoint").value;
 
     putLine("#from", "#to", "#svg", {
-        orientation: 'h',
+        orientation: 'v',
         strokeWidth: 1,
         color: 'teal',
         shape:lineType, // bezier/arc

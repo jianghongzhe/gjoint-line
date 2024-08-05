@@ -58,9 +58,9 @@ const PositionEnum = {
  * @param line
  * @param orientation h/v
  * @param strokeWidth
- * @param shape bezier/arc/square
- * @param fromPosition center/edge, invalid when shape=arc, always use center
- * @param toPosition center/edge, invalid when shape=arc, always use center
+ * @param shape bezier/arc/square, always square when orientation=v
+ * @param fromPosition center/edge, always center when shape=arc or orientation=v
+ * @param toPosition center/edge, always center when shape=arc or orientation=v
  * @param color
  */
 const putLine = (from, to, line, {
@@ -89,6 +89,24 @@ const putLine = (from, to, line, {
     const fromRect = getRelativeRect(getElement(fromEle).getBoundingClientRect(), relativeRect);
     const toRect = getRelativeRect(getElement(toEle).getBoundingClientRect(), relativeRect);
 
+    const baseContext = {
+        orientation,
+        strokeWidth,
+        fromPosition,
+        toPosition,
+        shape,
+        color,
+
+        fromEle,
+        toEle,
+        lineWrapperEle,
+        lineSvgEle,
+        linePathEle,
+        lineEllipseEle,
+        fromRect,
+        toRect,
+    };
+
     if ('h' === orientation) {
 
         const getJointPointTop = (rect, position) => {
@@ -102,202 +120,352 @@ const putLine = (from, to, line, {
             throw new Error("unsupported joint point position");
         };
 
+        const context = {...baseContext, getJointPointTop,};
+
         if (ShapeEnum.bezier === shape) {
-            if (lineEllipseEle) {
-                setStyleProperties(lineEllipseEle, {display: 'none',});
-            }
-
-            const padding = 10;
-            const controlLevel = 75;
-
-            const leftToRight = (fromRect.left < toRect.left);
-            let left = (leftToRight ? fromRect.right : toRect.right);
-            let right = (leftToRight ? toRect.left : fromRect.left);
-
-            const fromTop = getJointPointTop(fromRect, fromPosition);
-            const toTop = getJointPointTop(toRect, toPosition);
-            const top = Math.min(fromTop, toTop);
-            const bottom = Math.max(fromTop, toTop) + strokeWidth;
-
-            // look from left to right, whether the line is up to down
-            const lineLeftRightTopDown = ((leftToRight && fromTop < toTop) || (!leftToRight && fromTop > toTop));
-
-            let x1 = padding;
-            let y1 = padding + strokeWidth / 2;
-            let x2 = padding + (right - left);
-            let y2 = (padding + bottom - top - strokeWidth / 2);
-            let c1x = x1 + controlLevel;
-            let c1y = 0;
-            let c2x = x2 - controlLevel;
-            let c2y = 0;
-
-            if (!lineLeftRightTopDown) {
-                [y1, y2] = [y2, y1];
-            }
-
-            c1y = y1;
-            c2y = y2;
-
-            setStyleProperties(lineWrapperEle, {
-                left: `${left - padding}px`,
-                width: `${right - left + 2 * padding}px`,
-                top: `${top - padding}px`,
-                height: `${bottom - top + 2 * padding}px`,
-                "background-color": "transparent",
-                position: "absolute",
-                overflow: null,
-            });
-
-            setStyleProperties(lineSvgEle, {
-                width: `${right - left + 2 * padding}px`,
-                height: `${bottom - top + 2 * padding}px`,
-                "background-color": "transparent",
-                position: null,
-                bottom: null,
-                right: null,
-            });
-
-            linePathEle.setAttribute("d", `M ${x1} ${y1} C ${c1x} ${c1y} ${c2x} ${c2y} ${x2} ${y2}`);
-            setStyleProperties(linePathEle, {
-                stroke: color,
-                "stroke-width": strokeWidth,
-                fill: "none",
-                display: "block",
-            });
+            bezierHLine(context);
             return;
         }
-
         if (ShapeEnum.arc === shape) {
-            if (linePathEle) {
-                setStyleProperties(linePathEle, {display: 'none',});
-            }
-
-            const leftToRight = (fromRect.left < toRect.left);
-            let left = round(leftToRight ? fromRect.right - fromRect.width / 2 : toRect.right);
-            let right = round(leftToRight ? toRect.left : fromRect.right - fromRect.width / 2);
-
-            const fromTop = getJointPointTop(fromRect, PositionEnum.center);
-            const toTop = getJointPointTop(toRect, PositionEnum.center);
-            const topToDown = (fromTop < toTop);
-            const top = Math.min(fromTop, toTop);
-            const bottom = Math.max(fromTop, toTop) + strokeWidth;
-
-            // look from left to right, whether the line is up to down
-            const lineLeftRightTopDown = ((leftToRight && fromTop < toTop) || (!leftToRight && fromTop > toTop));
-
-
-            setStyleProperties(lineWrapperEle, {
-                left: `${left}px`,
-                width: `${right - left}px`,
-                top: `${top}px`,
-                height: `${bottom - top}px`,
-                position: "absolute",
-                "background-color": "transparent",
-                overflow: "hidden",
-            });
-
-
-            const svgStyle = {
-                width: `${(right - left) * 2}px`,
-                height: `${(bottom - top) * 2}px`,
-                "background-color": "transparent",
-                position: "absolute",
-                bottom: null,
-                right: null,
-            };
-
-            if (leftToRight && topToDown) {
-                svgStyle.bottom = `0`;
-            }
-            if (leftToRight && !topToDown) {
-            }
-            if (!leftToRight && topToDown) {
-                svgStyle.bottom = `0`;
-                svgStyle.right = `0`;
-            }
-            if (!leftToRight && !topToDown) {
-                svgStyle.right = `0`;
-            }
-
-            setStyleProperties(lineSvgEle, svgStyle);
-
-            lineEllipseEle.setAttribute("cx", `${right - left}`);
-            lineEllipseEle.setAttribute("cy", `${bottom - top}`);
-            lineEllipseEle.setAttribute("rx", `${right - left - strokeWidth / 2}`);
-            lineEllipseEle.setAttribute("ry", `${bottom - top - strokeWidth / 2}`);
-            setStyleProperties(lineEllipseEle, {
-                stroke: color,
-                "stroke-width": strokeWidth,
-                fill: "none",
-                display: "block",
-            });
+            arcHLine(context);
             return;
         }
-
         if (ShapeEnum.square === shape) {
-            if (lineEllipseEle) {
-                setStyleProperties(lineEllipseEle, {display: 'none',});
-            }
-
-            const padding = 10;
-            const controlRate = 0.4;
-
-            const leftToRight = (fromRect.left < toRect.left);
-            let left = (leftToRight ? fromRect.right : toRect.right);
-            let right = (leftToRight ? toRect.left : fromRect.left);
-
-            const fromTop = getJointPointTop(fromRect, fromPosition);
-            const toTop = getJointPointTop(toRect, toPosition);
-            const top = Math.min(fromTop, toTop);
-            const bottom = Math.max(fromTop, toTop) + strokeWidth;
-
-            // look from left to right, whether the line is up to down
-            const lineLeftRightTopDown = ((leftToRight && fromTop < toTop) || (!leftToRight && fromTop > toTop));
-
-            let step = round((right - left) * controlRate);
-            let x1 = padding;
-            let y1 = padding + strokeWidth / 2;
-            let x2 = padding + (right - left);
-            let y2 = (padding + bottom - top - strokeWidth / 2);
-
-
-            if (!lineLeftRightTopDown) {
-                [y1, y2] = [y2, y1];
-            }
-
-            let cx = (leftToRight ? x1 + step : x2 - step);
-            let cy =  y2;
-
-
-            setStyleProperties(lineWrapperEle, {
-                left: `${left - padding}px`,
-                width: `${right - left + 2 * padding}px`,
-                top: `${top - padding}px`,
-                height: `${bottom - top + 2 * padding}px`,
-                "background-color": "transparent",
-                position: "absolute",
-                overflow: null,
-            });
-
-            setStyleProperties(lineSvgEle, {
-                width: `${right - left + 2 * padding}px`,
-                height: `${bottom - top + 2 * padding}px`,
-                "background-color": "transparent",
-                position: null,
-                bottom: null,
-                right: null,
-            });
-
-            linePathEle.setAttribute("d", `M ${x1} ${y1} L ${cx} ${y1} L ${cx} ${y2} L ${x2} ${y2}`);
-            setStyleProperties(linePathEle, {
-                stroke: color,
-                "stroke-width": strokeWidth,
-                fill: "none",
-                display: "block",
-            });
+            squareHLine(context);
             return;
         }
+        return;
     }
+
+    if ('v' === orientation) {
+        const getJointPointLeft = (rect, position) => {
+            if (PositionEnum.center === position) {
+                return round(rect.left + rect.width / 2 - strokeWidth / 2);
+            }
+            console.error(`unsupported joint point position: ${position}`);
+            throw new Error("unsupported joint point position");
+        };
+        const context = {...baseContext, getJointPointLeft,};
+        squareVLine(context);
+    }
+};
+
+
+const bezierHLine = ({
+                         orientation,
+                         strokeWidth,
+                         fromPosition,
+                         toPosition,
+                         shape,
+                         color,
+                         fromEle,
+                         toEle,
+                         lineWrapperEle,
+                         lineSvgEle,
+                         linePathEle,
+                         lineEllipseEle,
+                         fromRect,
+                         toRect,
+                         getJointPointTop,
+                     }) => {
+
+    if (lineEllipseEle) {
+        setStyleProperties(lineEllipseEle, {display: 'none',});
+    }
+
+    const padding = 10;
+    const controlLevel = 75;
+
+    const leftToRight = (fromRect.left < toRect.left);
+    let left = (leftToRight ? fromRect.right : toRect.right);
+    let right = (leftToRight ? toRect.left : fromRect.left);
+
+    const fromTop = getJointPointTop(fromRect, fromPosition);
+    const toTop = getJointPointTop(toRect, toPosition);
+    const top = Math.min(fromTop, toTop);
+    const bottom = Math.max(fromTop, toTop) + strokeWidth;
+
+    // look from left to right, whether the line is up to down
+    const lineLeftRightTopDown = ((leftToRight && fromTop < toTop) || (!leftToRight && fromTop > toTop));
+
+    let x1 = padding;
+    let y1 = padding + strokeWidth / 2;
+    let x2 = padding + (right - left);
+    let y2 = (padding + bottom - top - strokeWidth / 2);
+    let c1x = x1 + controlLevel;
+    let c1y = 0;
+    let c2x = x2 - controlLevel;
+    let c2y = 0;
+
+    if (!lineLeftRightTopDown) {
+        [y1, y2] = [y2, y1];
+    }
+
+    c1y = y1;
+    c2y = y2;
+
+    setStyleProperties(lineWrapperEle, {
+        left: `${left - padding}px`,
+        width: `${right - left + 2 * padding}px`,
+        top: `${top - padding}px`,
+        height: `${bottom - top + 2 * padding}px`,
+        "background-color": "transparent",
+        position: "absolute",
+        overflow: null,
+    });
+
+    setStyleProperties(lineSvgEle, {
+        width: `${right - left + 2 * padding}px`,
+        height: `${bottom - top + 2 * padding}px`,
+        "background-color": "transparent",
+        position: null,
+        bottom: null,
+        right: null,
+    });
+
+    linePathEle.setAttribute("d", `M ${x1} ${y1} C ${c1x} ${c1y} ${c2x} ${c2y} ${x2} ${y2}`);
+    setStyleProperties(linePathEle, {
+        stroke: color,
+        "stroke-width": strokeWidth,
+        fill: "none",
+        display: "block",
+    });
+};
+
+const arcHLine = ({
+                      orientation,
+                      strokeWidth,
+                      fromPosition,
+                      toPosition,
+                      shape,
+                      color,
+                      fromEle,
+                      toEle,
+                      lineWrapperEle,
+                      lineSvgEle,
+                      linePathEle,
+                      lineEllipseEle,
+                      fromRect,
+                      toRect,
+                      getJointPointTop,
+                  }) => {
+    if (linePathEle) {
+        setStyleProperties(linePathEle, {display: 'none',});
+    }
+
+    const leftToRight = (fromRect.left < toRect.left);
+    let left = round(leftToRight ? fromRect.right - fromRect.width / 2 : toRect.right);
+    let right = round(leftToRight ? toRect.left : fromRect.right - fromRect.width / 2);
+
+    const fromTop = getJointPointTop(fromRect, PositionEnum.center);
+    const toTop = getJointPointTop(toRect, PositionEnum.center);
+    const topToDown = (fromTop < toTop);
+    const top = Math.min(fromTop, toTop);
+    const bottom = Math.max(fromTop, toTop) + strokeWidth;
+
+    // look from left to right, whether the line is up to down
+    const lineLeftRightTopDown = ((leftToRight && fromTop < toTop) || (!leftToRight && fromTop > toTop));
+
+
+    setStyleProperties(lineWrapperEle, {
+        left: `${left}px`,
+        width: `${right - left}px`,
+        top: `${top}px`,
+        height: `${bottom - top}px`,
+        position: "absolute",
+        "background-color": "transparent",
+        overflow: "hidden",
+    });
+
+
+    const svgStyle = {
+        width: `${(right - left) * 2}px`,
+        height: `${(bottom - top) * 2}px`,
+        "background-color": "transparent",
+        position: "absolute",
+        bottom: null,
+        right: null,
+    };
+
+    if (leftToRight && topToDown) {
+        svgStyle.bottom = `0`;
+    }
+    if (leftToRight && !topToDown) {
+    }
+    if (!leftToRight && topToDown) {
+        svgStyle.bottom = `0`;
+        svgStyle.right = `0`;
+    }
+    if (!leftToRight && !topToDown) {
+        svgStyle.right = `0`;
+    }
+
+    setStyleProperties(lineSvgEle, svgStyle);
+
+    lineEllipseEle.setAttribute("cx", `${right - left}`);
+    lineEllipseEle.setAttribute("cy", `${bottom - top}`);
+    lineEllipseEle.setAttribute("rx", `${right - left - strokeWidth / 2}`);
+    lineEllipseEle.setAttribute("ry", `${bottom - top - strokeWidth / 2}`);
+    setStyleProperties(lineEllipseEle, {
+        stroke: color,
+        "stroke-width": strokeWidth,
+        fill: "none",
+        display: "block",
+    });
+};
+
+const squareHLine = ({
+                         orientation,
+                         strokeWidth,
+                         fromPosition,
+                         toPosition,
+                         shape,
+                         color,
+                         fromEle,
+                         toEle,
+                         lineWrapperEle,
+                         lineSvgEle,
+                         linePathEle,
+                         lineEllipseEle,
+                         fromRect,
+                         toRect,
+                         getJointPointTop,
+                     }) => {
+    if (lineEllipseEle) {
+        setStyleProperties(lineEllipseEle, {display: 'none',});
+    }
+
+    const padding = 10;
+    const controlRate = 0.4;
+
+    const leftToRight = (fromRect.left < toRect.left);
+    let left = (leftToRight ? fromRect.right : toRect.right);
+    let right = (leftToRight ? toRect.left : fromRect.left);
+
+    const fromTop = getJointPointTop(fromRect, fromPosition);
+    const toTop = getJointPointTop(toRect, toPosition);
+    const top = Math.min(fromTop, toTop);
+    const bottom = Math.max(fromTop, toTop) + strokeWidth;
+
+    // look from left to right, whether the line is up to down
+    const lineLeftRightTopDown = ((leftToRight && fromTop < toTop) || (!leftToRight && fromTop > toTop));
+
+    let step = round((right - left) * controlRate);
+    let x1 = padding;
+    let y1 = padding + strokeWidth / 2;
+    let x2 = padding + (right - left);
+    let y2 = (padding + bottom - top - strokeWidth / 2);
+
+
+    if (!lineLeftRightTopDown) {
+        [y1, y2] = [y2, y1];
+    }
+
+    let cx = (leftToRight ? x1 + step : x2 - step);
+
+    setStyleProperties(lineWrapperEle, {
+        left: `${left - padding}px`,
+        width: `${right - left + 2 * padding}px`,
+        top: `${top - padding}px`,
+        height: `${bottom - top + 2 * padding}px`,
+        "background-color": "transparent",
+        position: "absolute",
+        overflow: null,
+    });
+
+    setStyleProperties(lineSvgEle, {
+        width: `${right - left + 2 * padding}px`,
+        height: `${bottom - top + 2 * padding}px`,
+        "background-color": "transparent",
+        position: null,
+        bottom: null,
+        right: null,
+    });
+
+    linePathEle.setAttribute("d", `M ${x1} ${y1} L ${cx} ${y1} L ${cx} ${y2} L ${x2} ${y2}`);
+    setStyleProperties(linePathEle, {
+        stroke: color,
+        "stroke-width": strokeWidth,
+        fill: "none",
+        display: "block",
+    });
+};
+
+const squareVLine = ({
+                         orientation,
+                         strokeWidth,
+                         fromPosition,
+                         toPosition,
+                         shape,
+                         color,
+                         fromEle,
+                         toEle,
+                         lineWrapperEle,
+                         lineSvgEle,
+                         linePathEle,
+                         lineEllipseEle,
+                         fromRect,
+                         toRect,
+                         getJointPointLeft,
+                     }) => {
+
+    if (lineEllipseEle) {
+        setStyleProperties(lineEllipseEle, {display: 'none',});
+    }
+
+    const padding = 10;
+    const controlRate = 0.4;
+
+    const topToBottom = (fromRect.top < toRect.top);
+    let top = (topToBottom ? fromRect.bottom : toRect.bottom);
+    let bottom = (topToBottom ? toRect.top : fromRect.top);
+
+    const fromLeft = getJointPointLeft(fromRect, fromPosition);
+    const toLeft = getJointPointLeft(toRect, toPosition);
+    const left = Math.min(fromLeft, toLeft);
+    const right = Math.max(fromLeft, toLeft) + strokeWidth;
+
+    // look from top to bottom, whether the line is left to right
+    const lineTopDownLeftRight = ((topToBottom && fromLeft < toLeft) || (!topToBottom && fromLeft > toLeft));
+
+    let step = round((bottom - top) * controlRate);
+    let x1 = padding + strokeWidth / 2;
+    let y1 = padding;
+    let x2 = (padding + right - left - strokeWidth / 2);
+    let y2 = padding + (bottom - top);
+
+    if (!lineTopDownLeftRight) {
+        [x1, x2] = [x2, x1];
+    }
+
+    let cy = (topToBottom ? y1 + step : y2 - step);
+
+    setStyleProperties(lineWrapperEle, {
+        left: `${left - padding}px`,
+        width: `${right - left + 2 * padding}px`,
+        top: `${top - padding}px`,
+        height: `${bottom - top + 2 * padding}px`,
+        "background-color": "transparent",
+        position: "absolute",
+        overflow: null,
+    });
+
+    setStyleProperties(lineSvgEle, {
+        width: `${right - left + 2 * padding}px`,
+        height: `${bottom - top + 2 * padding}px`,
+        "background-color": "transparent",
+        position: null,
+        bottom: null,
+        right: null,
+    });
+
+    linePathEle.setAttribute("d", `M ${x1} ${y1} L ${x1} ${cy} L ${x2} ${cy} L ${x2} ${y2}`);
+    setStyleProperties(linePathEle, {
+        stroke: color,
+        "stroke-width": strokeWidth,
+        fill: "none",
+        display: "block",
+    });
 };
 
 export {
