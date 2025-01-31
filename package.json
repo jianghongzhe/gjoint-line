@@ -1,6 +1,6 @@
 {
   "name": "gjoint-line",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "main": "js/joint-line.js",
   "type": "module",
   "scripts": {
