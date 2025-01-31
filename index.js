@@ -27,8 +27,21 @@ document.querySelector("#container").addEventListener("click", event => {
     const ele = document.querySelector("#to");
     ele.style.left = `${event.clientX}px`;
     ele.style.top = `${event.clientY}px`;
+
+    // force to use assigned left or top when transition not finished
+    // if no transition exists, then no need to use like this
+    ele.dataset.jointLineForceX=event.clientX;
+    ele.dataset.jointLineForceY=event.clientY;
+
+    console.log(`style ${ele.style.left} ${ele.style.top}`);
+
+    console.log(`bounding ${JSON.stringify(ele.getBoundingClientRect())}`);
+
+
+
     document.querySelector("input").value = event.clientY;
     putLines();
+    // setTimeout(()=>putLines(), 4);
 });
 
 document.querySelector("input").addEventListener("input", event => {

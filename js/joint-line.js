@@ -51,6 +51,23 @@ const PositionEnum = {
     edge: "edge",
 };
 
+const adjustRect=(rect, newX, newY)=>{
+    if ('undefined' !== typeof newX) {
+        newX=parseInt(newX);
+        rect.x=newX;
+        rect.left=newX;
+        rect.right=newX+rect.width;
+    }
+    if ('undefined' !== typeof newY) {
+        newY=parseInt(newY);
+        rect.y=newY;
+        rect.top=newY;
+        rect.bottom=newY+rect.height;
+    }
+
+    console.log("new rect", rect);
+};
+
 /**
  *
  * @param from
@@ -87,7 +104,13 @@ const putLine = (from, to, line, {
 
     const relativeRect = fromEle.parentNode.getBoundingClientRect();
     const fromRect = getRelativeRect(getElement(fromEle).getBoundingClientRect(), relativeRect);
+    adjustRect(fromRect, fromEle?.dataset?.jointLineForceX, fromEle?.dataset?.jointLineForceY);
+
     const toRect = getRelativeRect(getElement(toEle).getBoundingClientRect(), relativeRect);
+    adjustRect(toRect, toEle?.dataset?.jointLineForceX, toEle?.dataset?.jointLineForceY);
+
+
+
 
     const baseContext = {
         orientation,
