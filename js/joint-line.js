@@ -4,6 +4,8 @@
  * @returns {{tagName}|*|Element}
  */
 const getElement = (selectorOrEle) => {
+    console.log("getElement", selectorOrEle);
+
     if ('object' === typeof selectorOrEle && selectorOrEle.tagName) {
         return selectorOrEle;
     }
@@ -51,21 +53,46 @@ const PositionEnum = {
     edge: "edge",
 };
 
-const adjustRect=(rect, newX, newY)=>{
+const createRectBaseOn = (rect, newX, newY) => {
+    const newRect = {
+        x: rect.x,
+        y: rect.y,
+        left: rect.left,
+        top: rect.top,
+        right: rect.right,
+        bottom: rect.bottom,
+        width: rect.width,
+        height: rect.height,
+    };
+    adjustRect(newRect, newX, newY);
+    return newRect;
+};
+
+const adjustRect = (rect, newX, newY) => {
     if ('undefined' !== typeof newX) {
-        newX=parseInt(newX);
-        rect.x=newX;
-        rect.left=newX;
-        rect.right=newX+rect.width;
+        newX = parseInt(newX);
+        rect.x = newX;
+        rect.left = newX;
+        rect.right = newX + rect.width;
     }
     if ('undefined' !== typeof newY) {
-        newY=parseInt(newY);
-        rect.y=newY;
-        rect.top=newY;
-        rect.bottom=newY+rect.height;
+        newY = parseInt(newY);
+        rect.y = newY;
+        rect.top = newY;
+        rect.bottom = newY + rect.height;
     }
+};
 
-    console.log("new rect", rect);
+const isRect = (rect) => {
+    return (
+        'object' === typeof (rect) &&
+        'left' in rect &&
+        'top' in rect &&
+        'right' in rect &&
+        'bottom' in rect &&
+        'width' in rect &&
+        'height' in rect
+    );
 };
 
 /**
@@ -95,21 +122,31 @@ const putLine = (from, to, line, {
     shape = (shape ?? ShapeEnum.bezier);
     color = (color ?? 'lightgrey');
 
-    const fromEle = getElement(from);
-    const toEle = getElement(to);
+
     const lineWrapperEle = getElement(line);
     const lineSvgEle = lineWrapperEle.querySelector("svg");
     const linePathEle = lineSvgEle.querySelector("path");
     const lineEllipseEle = lineSvgEle.querySelector("ellipse");
 
-    const relativeRect = fromEle.parentNode.getBoundingClientRect();
-    const fromRect = getRelativeRect(getElement(fromEle).getBoundingClientRect(), relativeRect);
-    adjustRect(fromRect, fromEle?.dataset?.jointLineForceX, fromEle?.dataset?.jointLineForceY);
+    let fromRect = null;
+    if (isRect(from)) {
+        fromRect = from;
+    } else {
+        const fromEle = getElement(from);
+        const relativeRect = fromEle.parentNode.getBoundingClientRect();
+        fromRect = getRelativeRect(fromEle.getBoundingClientRect(), relativeRect);
+        // adjustRect(fromRect, fromEle?.dataset?.jointLineForceX, fromEle?.dataset?.jointLineForceY);
+    }
 
-    const toRect = getRelativeRect(getElement(toEle).getBoundingClientRect(), relativeRect);
-    adjustRect(toRect, toEle?.dataset?.jointLineForceX, toEle?.dataset?.jointLineForceY);
-
-
+    let toRect = null;
+    if (isRect(to)) {
+        toRect = to;
+    } else {
+        const toEle = getElement(to);
+        const relativeRect = toEle.parentNode.getBoundingClientRect();
+        toRect = getRelativeRect(toEle.getBoundingClientRect(), relativeRect);
+        // adjustRect(toRect, toEle?.dataset?.jointLineForceX, toEle?.dataset?.jointLineForceY);
+    }
 
 
     const baseContext = {
@@ -120,8 +157,8 @@ const putLine = (from, to, line, {
         shape,
         color,
 
-        fromEle,
-        toEle,
+        // fromEle,
+        // toEle,
         lineWrapperEle,
         lineSvgEle,
         linePathEle,
@@ -492,5 +529,7 @@ const squareVLine = ({
 };
 
 export {
-    putLine
+    putLine,
+    createRectBaseOn,
+    isRect,
 };
