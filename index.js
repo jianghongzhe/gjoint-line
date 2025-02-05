@@ -6,7 +6,7 @@ const putLines = (to) => {
     const toPosition = document.querySelector("#toPoint").value;
     const direction = document.querySelector("#lineDirection").value;
 
-
+    console.log("is rect", isRect(to));
 
     putLine("#from", isRect(to) ? to : "#to", "#svg", {
         orientation: direction,
@@ -29,30 +29,30 @@ document.querySelector("#container").addEventListener("click", event => {
     ele.style.left = `${event.clientX}px`;
     ele.style.top = `${event.clientY}px`;
 
-    // force to use assigned left or top when transition not finished
-    // if no transition exists, then no need to use like this
-    // ele.dataset.jointLineForceX=event.clientX;
-    // ele.dataset.jointLineForceY=event.clientY;
-
-    // console.log(`style ${ele.style.left} ${ele.style.top}`);
-    // console.log(`bounding ${JSON.stringify(ele.getBoundingClientRect())}`);
-
-
     document.querySelector("input").value = event.clientY;
 
     const targetRect = createRectBaseOn(ele.getBoundingClientRect(), event.clientX, event.clientY);
     putLines(targetRect);
-    // setTimeout(()=>putLines(), 4);
 });
 
 document.querySelector("input").addEventListener("input", event => {
     if (isNaN(event.target.value)) {
         return;
     }
-    document.querySelector("#to").style.top = `${event.target.value}px`;
-    putLines();
+
+
+    const ele = document.querySelector("#to");
+    ele.style.top = `${event.target.value}px`;
+
+    const oldRect = ele.getBoundingClientRect();
+    console.log("old rect", JSON.stringify(oldRect));
+
+    const targetRect = createRectBaseOn(oldRect, null, event.target.value);
+    console.log("new rect", JSON.stringify(targetRect));
+    putLines(targetRect);
 });
 
 
+const toNodeTop = window.getComputedStyle(document.querySelector("#to")).top;
+document.querySelector("input").value = toNodeTop.endsWith("px") ? toNodeTop.substring(0, toNodeTop.length - 2) : toNodeTop;
 putLines();
-

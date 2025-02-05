@@ -69,13 +69,13 @@ const createRectBaseOn = (rect, newX, newY) => {
 };
 
 const adjustRect = (rect, newX, newY) => {
-    if ('undefined' !== typeof newX) {
+    if (['number', 'string'].includes(typeof newX)) {
         newX = parseInt(newX);
         rect.x = newX;
         rect.left = newX;
         rect.right = newX + rect.width;
     }
-    if ('undefined' !== typeof newY) {
+    if (['number', 'string'].includes(typeof newY)) {
         newY = parseInt(newY);
         rect.y = newY;
         rect.top = newY;
@@ -234,11 +234,14 @@ const bezierHLine = ({
     }
 
     const padding = 10;
-    const controlLevel = 75;
+
 
     const leftToRight = (fromRect.left < toRect.left);
     let left = (leftToRight ? fromRect.right : toRect.right);
     let right = (leftToRight ? toRect.left : fromRect.left);
+
+    // control point: min(xDist*3/4, 75)
+    const controlLevel = Math.min(round(Math.abs(right - left) * 0.75), 75);
 
     const fromTop = getJointPointTop(fromRect, fromPosition);
     const toTop = getJointPointTop(toRect, toPosition);
