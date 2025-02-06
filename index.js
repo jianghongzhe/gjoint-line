@@ -32,6 +32,7 @@ document.querySelector("#container").addEventListener("click", event => {
     document.querySelector("input").value = event.clientY;
 
     const targetRect = createRectBaseOn(ele.getBoundingClientRect(), event.clientX, event.clientY);
+    console.log("click rect", JSON.stringify(targetRect));
     putLines(targetRect);
 });
 
@@ -45,10 +46,10 @@ document.querySelector("input").addEventListener("input", event => {
     ele.style.top = `${event.target.value}px`;
 
     const oldRect = ele.getBoundingClientRect();
-    console.log("old rect", JSON.stringify(oldRect));
 
-    const targetRect = createRectBaseOn(oldRect, null, event.target.value);
-    console.log("new rect", JSON.stringify(targetRect));
+    const newX = oldRect.left - ele.parentNode.getBoundingClientRect().left;
+    const targetRect = createRectBaseOn(oldRect, newX, event.target.value);
+    console.log("input rect", JSON.stringify(targetRect));
     putLines(targetRect);
 });
 
