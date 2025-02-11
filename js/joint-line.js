@@ -16,7 +16,7 @@ const getElement = (selectorOrEle) => {
     throw new Error("cannot get element");
 };
 
-const round = (num) => parseInt(Math.round(num));
+const round = (num) => parseInt(`${Math.round(num)}`);
 
 /**
  * get the relative rect with its fields rounded to integer
@@ -124,28 +124,30 @@ const putLine = (from, to, line, {
 
 
     const lineWrapperEle = getElement(line);
-    const lineSvgEle = lineWrapperEle.querySelector("svg");
-    const linePathEle = lineSvgEle.querySelector("path");
-    const lineEllipseEle = lineSvgEle.querySelector("ellipse");
+    const svgNS = "http://www.w3.org/2000/svg";
+    let lineSvgEle = lineWrapperEle.querySelector("svg") ||
+        lineWrapperEle.appendChild(document.createElementNS(svgNS, "svg"));
+    const linePathEle = lineSvgEle.querySelector("path") ||
+        lineSvgEle.appendChild(document.createElementNS(svgNS, "path"));
+    const lineEllipseEle = lineSvgEle.querySelector("ellipse") ||
+        lineSvgEle.appendChild(document.createElementNS(svgNS, "ellipse"));
 
-    let fromRect = null;
+    let fromRect;
     if (isRect(from)) {
         fromRect = from;
     } else {
         const fromEle = getElement(from);
         const relativeRect = fromEle.parentNode.getBoundingClientRect();
         fromRect = getRelativeRect(fromEle.getBoundingClientRect(), relativeRect);
-        // adjustRect(fromRect, fromEle?.dataset?.jointLineForceX, fromEle?.dataset?.jointLineForceY);
     }
 
-    let toRect = null;
+    let toRect;
     if (isRect(to)) {
         toRect = to;
     } else {
         const toEle = getElement(to);
         const relativeRect = toEle.parentNode.getBoundingClientRect();
         toRect = getRelativeRect(toEle.getBoundingClientRect(), relativeRect);
-        // adjustRect(toRect, toEle?.dataset?.jointLineForceX, toEle?.dataset?.jointLineForceY);
     }
 
 
@@ -212,14 +214,10 @@ const putLine = (from, to, line, {
 
 
 const bezierHLine = ({
-                         orientation,
                          strokeWidth,
                          fromPosition,
                          toPosition,
-                         shape,
                          color,
-                         fromEle,
-                         toEle,
                          lineWrapperEle,
                          lineSvgEle,
                          linePathEle,
@@ -234,7 +232,6 @@ const bezierHLine = ({
     }
 
     const padding = 10;
-
 
     const leftToRight = (fromRect.left < toRect.left);
     let left = (leftToRight ? fromRect.right : toRect.right);
@@ -256,9 +253,9 @@ const bezierHLine = ({
     let x2 = padding + (right - left);
     let y2 = (padding + bottom - top - strokeWidth / 2);
     let c1x = x1 + controlLevel;
-    let c1y = 0;
+    let c1y;
     let c2x = x2 - controlLevel;
-    let c2y = 0;
+    let c2y;
 
     if (!lineLeftRightTopDown) {
         [y1, y2] = [y2, y1];
@@ -296,14 +293,8 @@ const bezierHLine = ({
 };
 
 const arcHLine = ({
-                      orientation,
                       strokeWidth,
-                      fromPosition,
-                      toPosition,
-                      shape,
                       color,
-                      fromEle,
-                      toEle,
                       lineWrapperEle,
                       lineSvgEle,
                       linePathEle,
@@ -325,10 +316,6 @@ const arcHLine = ({
     const topToDown = (fromTop < toTop);
     const top = Math.min(fromTop, toTop);
     const bottom = Math.max(fromTop, toTop) + strokeWidth;
-
-    // look from left to right, whether the line is up to down
-    const lineLeftRightTopDown = ((leftToRight && fromTop < toTop) || (!leftToRight && fromTop > toTop));
-
 
     setStyleProperties(lineWrapperEle, {
         left: `${left}px`,
@@ -354,6 +341,7 @@ const arcHLine = ({
         svgStyle.bottom = `0`;
     }
     if (leftToRight && !topToDown) {
+        // nothing to do
     }
     if (!leftToRight && topToDown) {
         svgStyle.bottom = `0`;
@@ -378,14 +366,10 @@ const arcHLine = ({
 };
 
 const squareHLine = ({
-                         orientation,
                          strokeWidth,
                          fromPosition,
                          toPosition,
-                         shape,
                          color,
-                         fromEle,
-                         toEle,
                          lineWrapperEle,
                          lineSvgEle,
                          linePathEle,
@@ -455,14 +439,10 @@ const squareHLine = ({
 };
 
 const squareVLine = ({
-                         orientation,
                          strokeWidth,
                          fromPosition,
                          toPosition,
-                         shape,
                          color,
-                         fromEle,
-                         toEle,
                          lineWrapperEle,
                          lineSvgEle,
                          linePathEle,
