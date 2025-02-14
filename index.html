@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <link rel="icon" type="image/svg+xml" href="/vite.svg"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Vite App</title>
+    <style>
+        .transition{
+            transition: all .4s ease;
+        }
+    </style>
+</head>
+<body style="overflow: hidden;padding: 0; margin: 0;">
+
+<input/>
+
+direction
+<select id="lineDirection">
+    <option>h</option>
+    <option>v</option>
+</select>
+
+line type
+<select id="lineType">
+    <option>bezier</option>
+    <option>arc</option>
+    <option>square</option>
+</select>
+
+from join point
+<select id="fromPoint">
+    <option>center</option>
+    <option>edge</option>
+</select>
+
+to join point
+<select id="toPoint">
+    <option>center</option>
+    <option>edge</option>
+</select>
+
+<div id="container"
+        style="width: 90vw; height:90vh;   position: relative; overflow: auto; margin: 0; padding: 0; margin-top:10px; margin-left:10px;">
+
+
+    <div id="from"
+         style="z-index: 2; position: absolute; width:100px; height:100px; background-color: #EEEEEE; box-sizing: border-box; border-bottom: 1px solid teal; left:310px; top:315px;">
+    </div>
+    <div id="to"
+         style="z-index: 2;position: absolute; width:100px; height:100px; background-color: #EEEEEE;box-sizing: border-box; border-bottom: 1px solid teal; left:550px; top:210px;"
+            class="transition">
+    </div>
+    <div id="svg" style="z-index: 1;" class="transition">
+    </div>
+</div>
+<script type="module" src="/index.js"></script>
+</body>
+
+</html>
