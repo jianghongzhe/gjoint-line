@@ -97,9 +97,9 @@ const isRect = (rect) => {
 
 /**
  *
- * @param from
- * @param to
- * @param line
+ * @param from selector or element or rect
+ * @param to selector or element or rect
+ * @param line selector or element
  * @param orientation h/v
  * @param strokeWidth
  * @param shape bezier/arc/square, always square when orientation=v
