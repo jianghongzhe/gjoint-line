@@ -1,7 +1,16 @@
 {
   "name": "gjoint-line",
   "version": "1.1.0",
+  "description": "join two elements with bezier line, arc line or square line",
   "main": "js/joint-line.js",
+  "keywords": [
+    "joint",
+    "line",
+    "bezier"
+  ],
+  "author": "jianghongzhe",
+  "license": "",
+  "repository": "https://gitee.com/gigi198436/gjoint-line",
   "type": "module",
   "scripts": {
     "dev": "vite",
